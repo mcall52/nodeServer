@@ -22,37 +22,37 @@ var WANT = 1;
 
 function send_message() {
 	console.log('send_message() called');
-	
+
 	messages_sent_count++;
 	var messageID = window.sessionStorage.username + ":" + messages_sent_count;
 	var message = $("#message").val();
 	var endpoint = "http://localhost:3000/messages/" + window.sessionStorage.username;
-	
+
 	var new_message = {"Rumor" : {"MessageID": messageID,
 		"Originator": window.sessionStorage.username,
 		"Text": message},"EndPoint":endpoint};
-		
+
 	//var allMessages = JSON.parse(sessionStorage.getItem('allMessages'));
-	
+
 	//allMessages.push(new_message);
 	$.post("http://localhost:3000/messages/"+sessionStorage.username, new_message, function(data){
 		console.log('list of peers data is ' + data);
-		sessionStorage.peers = JSON.parse(data);
+		sessionStorage.peers = JSON.stringify(data);
 	});
-	
+
 	//print_messages();
-	
+
 	//call Gossip protocol - maybe
 }
 
 function print_messages() {
 	var allMessages = [];
-	
+
 	$.get("http://localhost:3000/messages/"+sessionStorage.username, function(data) {
 		console.log("messages retrieved!");
 		//console.log('page content: ' + data);
 		allMessages = JSON.parse(data);
-		
+
 		var message_thread = '';
 		for(var i = 0; i < allMessages.length; i++){
 			var temp_message = '<div id=' + allMessages[i].Rumor.MessageID + '><p>'
@@ -62,12 +62,12 @@ function print_messages() {
 
 		//sessionStorage.setItem('allMessages', JSON.stringify(allMessages));
 		$("#messages").html(message_thread);
-	});	
+	});
 }
 
 function gossip(){
 	console.log('gossip function called');
-	
+
 	while(true){
 		//execute gossip protocol
 		//q = getPeer(state)
@@ -78,48 +78,51 @@ function gossip(){
 		//<url> = lookup(q)
 		//send (<url>, s)
 		//$.post(peer.endpoint, message, function(data) {
-			
+
 		//});
 		print_messages();
 		//sleep n
-		sleep(2000);
+		sleep(5000);
 	}
 }
 
 //returns a peer from the local storage.
 function getPeer(){
-	var peers = sessionStorage.peers;
+	var peers = JSON.parse(sessionStorage.peers);
+	console.log('getPeer called');
+	//console.log('peers is ' + JSON.stringify(peers));
+
 	var index = Math.floor(Math.random() * peers.length);
 	var peer = peers[index];
-	console.log('peer chosen is ' + peer.username);
+	console.log('peer picked is ' + peer.username);
 	while(peer.username !== sessionStorage.username){
 		//remove self from list
 		peers.splice(index, 1);
 		peer = peers[Math.floor(Math.random() * peers.length)];
 		console.log('peer chosen was self');
-		
+
 	}
-	
-	console.log('peer chosen is ' + peer.username);
+
+	console.log('peer finally chosen is ' + peer.username);
 	return peer;
 }
 
 function prepareMessage(state, peer){
 	//randomly pick "rumor" or "want"
-	
+
 	var min = Math.ceil(0);
 	var max = Math.floor(2);
 	var message_type = Math.floor(Math.random() * (max - min)) + min; // this is includes 0 but excludes 2
-	
+
 	if(message_type === RUMOR){
 		//pick a message and send italic
 		console.log('message_type == rumor');
 		$.post(peer.endpoint, state, function(data){
-			
+
 		});
 	}
 	else if (message_type === WANT){
-		
+
 	}
 }
 
@@ -131,5 +134,3 @@ function sleep(milliseconds) {
 		}
 	}
 }
-
-

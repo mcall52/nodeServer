@@ -5,10 +5,12 @@ var https = require('https');
 var uuidV4 = require('uuid/v4');
 var fs = require('fs');
 var path = require('path');
+var cluster = require('cluster');
+
 var app = express();
 var router = express.Router();
 var bodyParser = require('body-parser');
-app.use(bodyParser.json()); 
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 var client_id = 'C1QZRWYXB0JWDJVGNT3ETDLVOCFTSJ3V53AXS5QVMZW0NYEC';
@@ -35,15 +37,27 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, '/js')));
 
-var options = {
-    host: '127.0.0.1',
-    key:  fs.readFileSync('./key.pem'),
-    cert: fs.readFileSync('./cert.pem'),
-    passphrase: 'Shinkid0'
-    };
-http.createServer(app).listen(3000);
-//https.createServer(options, app).listen(443);
+var port = 3000;
+var num_of_processes = 3;
 
+if(cluster.isMaster){
+		console.log(`Master ${process.pid} is running`);
+
+		// Fork workers.
+		for (var i = 0; i < num_of_processes; i++) {
+				cluster.fork();
+		}
+
+		cluster.on('exit', (worker, code, signal) => {
+				console.log(`worker ${worker.process.pid} died`);
+		});
+}
+else {
+		http.createServer(app).listen(port);
+		//https.createServer(options, app).listen(443);
+		console.log(`Worker ${process.pid} started`);
+		port++;
+}
 
 console.log('It\'s running!');
 
@@ -77,7 +91,7 @@ app.get('/login', function (req, res) {
   	//res.writeHead(303, { 'location': foursquare.getAuthClientRedirectUrl() });
   	//res.end();
   	res.sendFile(path.join(__dirname+'/views/login.html'));
-       	
+
 });
 
 function userIsFound(username, callback) {
@@ -90,7 +104,7 @@ function userIsFound(username, callback) {
 			return true;
       		}
     	}
-	
+
 		console.log('username not found');
     	return false;
 }
@@ -100,7 +114,7 @@ app.get('/callback', function (req, res) {
 
   	//foursquare.getAccessToken({
   	//    code: req.query.code
-  	//  }, 
+  	//  },
   	//  function (error, accessToken) {
   	//    if(error) {
   	//      res.send('An error was thrown: ' + error.message);
@@ -108,9 +122,9 @@ app.get('/callback', function (req, res) {
   	//    else {
 	// Save the accessToken and redirect.
 	      //
-	//open file and create it if it doesn't exist	
+	//open file and create it if it doesn't exist
 	//var file = fs.readFileSync('./tokens.json');
-	
+
 	//var file = fs.readFileSync('./profiles.json');
 	//var jsonFile = JSON.parse(file);
 	var username = req.query.username;
@@ -119,7 +133,7 @@ app.get('/callback', function (req, res) {
 	console.log('username is ' + username);
 
 	//console.log('*****file contents = ' + jsonFile);
-	
+
 	/*if (jsonFile === ''){
 	  	console.log('empty file: creating new array');
 	  	console.log('THIS SHOULD NEVER HAPPEN*****************************************');
@@ -141,12 +155,12 @@ app.get('/callback', function (req, res) {
 	  	//console.log('searching for username in json file');
 
     	  	//console.log('file is ' + jsonFile);
-	    
+
 	  	if(!userIsFound(username, function(found_uuid){uuid = found_uuid;})){
 	    	//console.log('user not found: adding user');
 	    	//console.log('jsonFile before = ' + jsonFile);
 			uuid = uuidV4();
-		
+
 			var empty_array = [];
 			var endpoint = "http://localhost:3000/messages/" + username;
 			var newEntry = {"username":username,"uuid":uuid,"endpoint":endpoint,"messages":empty_array};
@@ -155,12 +169,12 @@ app.get('/callback', function (req, res) {
 
 	    	//console.log('jsonFile after = ' + jsonFile);
 
-	    	//fs.writeFileSync('./profiles.json', JSON.stringify(jsonFile), 'utf8'); 
+	    	//fs.writeFileSync('./profiles.json', JSON.stringify(jsonFile), 'utf8');
 		}
 	  	else{
 	    	//token exists
 	    	console.log('profile found and logged in');
-			
+
 	  	}
 	//}
         res.redirect('/messages?username=' + username + '&uuid=' + uuid);
@@ -183,7 +197,7 @@ app.get('/messages', function (req, res) {
 function getUser(username) {
 	for (var user of users) {
 		if(user.username === username){
-			return user;	
+			return user;
 		}
 	}
 	return null;
@@ -204,14 +218,14 @@ app.get('/messages/:username', function(req, res) {
 //AND returns a list of the current users
 app.post('/messages/:username', function (req, res) {
 	//retrieve the messages from the user whose username is specified
-	
+
 	//t = getMessage();
 	//if (  isRumor(t)  ) {
 	//	store(t)
 	var user = getUser(req.params.username);
 	if (user !== null){
 		console.log('body is ' + JSON.stringify(req.body));
-		
+
 		user.messages.push(req.body);
 		res.end(JSON.stringify(users));
 	}
@@ -246,7 +260,7 @@ app.get('/curl', function (req, res) {
   	else if (req.get('Accept') === 'application/vnd.byu.cs462.v2+json') {
     		res.send('{"version": "v2" }');
   	}
-  	
+
 	console.log(req.get('Accept'));
   	res.send('Wrong');
 });

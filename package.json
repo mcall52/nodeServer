@@ -1,0 +1,29 @@
+{
+  "name": "gossip-protocol",
+  "version": "1.0.0",
+  "description": "Basic implementation of Gossip Protocol. Run locally.",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.14.0",
+    "async": "^2.1.5",
+    "body-parser": "^1.17.0",
+    "node-foursquare": "^0.3.0",
+    "url": "^0.11.0",
+    "uuid": "^3.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "\"echo \\\"Error: no test specified\\\" && exit 1\"",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcall52/nodeServer.git"
+  },
+  "author": "Michael Call",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mcall52/nodeServer/issues"
+  },
+  "homepage": "https://github.com/mcall52/nodeServer#readme"
+}

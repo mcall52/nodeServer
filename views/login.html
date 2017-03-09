@@ -1,0 +1,19 @@
+<html>
+	<head>
+		<title>Login</title>
+	</head>
+	<body>
+		Username: <input type="text" id="Username" required><br/>
+		<input type="submit" value="Submit" onClick="submit()">
+
+	</body>
+	<script>
+		function submit() {
+			var username = document.getElementById("Username").value;
+
+			//alert('username = ' + username);
+
+			window.location.href = "http://localhost:3000/callback?username="+username;
+		}
+	</script>
+</html>

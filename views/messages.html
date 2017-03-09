@@ -1,0 +1,53 @@
+<html>
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<!--<script>
+			function send_message() {
+			console.log('send_message() called');
+			
+			//var message_thread = document.getElementById("messages");
+			var new_message = '<div id="message"><p>'+$("#message").val()+'</p></div>';
+
+			$("#messages").append(new_message);
+}		</script>-->
+		<script src='gossip.js'></script>
+		<script>
+			window.onload = function() {
+				var urlParams = new URLSearchParams(window.location.search);
+				
+				//store username and uuid in session storage
+				var username = urlParams.get('username');//get username from url query
+				var uuid = urlParams.get('uuid');//get uuid from url query
+				
+				console.log('username is ' + username);
+				console.log('uuid is ' + uuid);
+				
+				$('#username').html("<h1>Username: " + username + "</h1>");
+				window.sessionStorage.setItem("username", username);
+				$('#uuid').html('<h3>UUID: ' + uuid + '</h3>');
+				window.sessionStorage.setItem("uuid", uuid);
+				//var allMessages = [];
+				//window.sessionStorage.setItem("allMessages", JSON.stringify(allMessages));
+				//run gossip protocol
+				//gossip();
+				$.get('/users', function (data){
+					sessionStorage.peers = data;
+					console.log('peers received from server');
+					console.log('peer data is ' + data);
+				})
+				print_messages();
+				setTimeout(gossip, 2000);
+			}
+		</script>
+	</head>
+	<body>
+		<p id="username">User</p>
+		<p id="uuid">UUID</p>
+		<input type="text" id="message"><br/>
+		<button id="send" onclick="send_message()">Send!</button><br/><br/>
+		<h2>Messages</h2>
+		<div id="messages"></div>
+	</body>
+	
+
+</html>
